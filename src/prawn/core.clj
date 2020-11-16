@@ -4,22 +4,25 @@
 (def not-h-file (unchecked-long 0x7f7f7f7f7f7f7f7f))
 
 (def board-steps
-  "Represents "
+  "Represents the transitions as bitboards along files of a chessboard,
+  i.e. `(a1->a2->a3->a4 ...)`"
   (map (fn [a]
          (for [x (range 0 64 8)
                y [a]]
-           (- y x))) (range 56 64)))
+           (bit-set 0 (- y x)))) (range 56 64)))
 
-(def pieces
-  "A list of lists containing all 64 pieces of a chessboard (<file><rank>)
-  as keywords, e.g. '((:a1 :a2 ...) ... (:h1 ...)"
+(def squares
+  "A list of lists containing all 64 squares of a chessboard 
+  as keywords `(<file><rank>)`, e.g. `((:a1 :a2 ...) ... (:h1 ...)`"
   (map (fn [file]
          (for [rank (range 1 9)]
            (keyword (str file rank)))) (map #(char %) (range 97 105))))
 
 (def board-map
-  "Mapping from piece to bit position on a LERF based bitboard"
-  (into {} (map (fn [a b] (zipmap a b)) pieces board-steps)))
+  "Mapping from square to bit position on a LERF based bitboard."
+  (into {} (map (fn [a b] (zipmap a b)) squares board-steps)))
+
+(def inverted-board-map (clojure.set/map-invert board-map))
 
 (defn south
   "Shift square x bits right. If no x is
@@ -56,13 +59,12 @@
 (def attack-map
   {:king king})
 
-;; {0 bitboard 1 bitboard}
 (defn gen-attack-moves
-  "Given a chess piece, generates all legal attack moves of that piece as a bitboard"
+  "Given a chess piece, generates all legal attack moves of that piece along every
+  square of a chessboard as a map of bitboards."
   [piece]
-  (into {} (map (fn [square] [square ((piece attack-map) square)])
+  (into {} (map (fn [square] [(inverted-board-map square) ((piece attack-map) square)])
                 (map #(bit-set 0 %) (range 0 64)))))
-
 
 (defn dec->bin
   "Returns as a string the binary representation of a decimal
@@ -75,8 +77,4 @@
   "Pretty prints a bitboard into an 8x8 chessboard"
   [bitboard]
   (clojure.string/join "\n" (map (partial apply str) (partition-all 8 (reverse (dec->bin bitboard))))))
-
-
-;; this should work
-;; (print (pr-board (get (gen-attack-moves :king) (:e4 board-map))))
 
