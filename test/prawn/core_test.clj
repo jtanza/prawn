@@ -2,6 +2,8 @@
   (:require [clojure.test :refer :all]
             [prawn.core :refer :all]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 921102 (king (bit-set 0 10))))))
+(deftest lerf-bitboard-test
+  (testing "LERF board mapping"
+    (is (= 1 (:a1 board-map)))
+    (is (= 2 (:b1 board-map)))
+    (is (= Long/MIN_VALUE (:h8 board-map)))))

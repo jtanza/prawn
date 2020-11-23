@@ -1,4 +1,5 @@
-(ns prawn.core)
+(ns prawn.core
+  (:require [clojure.set :as set]))
 
 (def not-a-file (unchecked-long 0xfefefefefefefefe))
 (def not-h-file (unchecked-long 0x7f7f7f7f7f7f7f7f))
@@ -7,9 +8,9 @@
   "Represents the transitions as bitboards along files of a chessboard,
   i.e. `(a1->a2->a3->a4 ...)`"
   (map (fn [a]
-         (for [x (range 0 64 8)
-               y [a]]
-           (bit-set 0 (- y x)))) (range 56 64)))
+         (reverse (for [x (range 0 64 8)
+                y [a]]
+            (bit-set 0 (- y x))))) (range 56 64)))
 
 (def squares
   "A list of lists containing all 64 squares of a chessboard 
@@ -22,7 +23,9 @@
   "Mapping from square to bit position on a LERF based bitboard."
   (into {} (map (fn [a b] (zipmap a b)) squares board-steps)))
 
-(def inverted-board-map (clojure.set/map-invert board-map))
+(def
+  "Mapping from bit position to square on a LERF based bitboard"
+  inverted-board-map (set/map-invert board-map))
 
 (defn south
   "Shift square x bits right. If no x is
@@ -76,5 +79,5 @@
 (defn pr-board
   "Pretty prints a bitboard into an 8x8 chessboard"
   [bitboard]
-  (clojure.string/join "\n" (map (partial apply str) (partition-all 8 (reverse (dec->bin bitboard))))))
+  (clojure.string/join "\n" (map (partial apply str) (reverse (partition-all 8 (reverse (dec->bin bitboard)))))))
 
