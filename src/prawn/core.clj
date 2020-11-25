@@ -1,5 +1,6 @@
 (ns prawn.core
-  (:require [clojure.set :as set]))
+  (:require [clojure.set :as set]
+            [clojure.string :as string]))
 
 (def not-a-file (unchecked-long 0xfefefefefefefefe))
 (def not-h-file (unchecked-long 0x7f7f7f7f7f7f7f7f))
@@ -12,14 +13,14 @@
   (map (fn [a]
          (reverse (for [x (range 0 64 8)
                 y [a]]
-            (bit-set 0 (- y x))))) (range 56 64)))
+                    (bit-set 0 (- y x))))) (range 56 64)))
 
 (def files
   "An ordered list of lists containing all 8 files of a chessboard
   e.g. `((:a1 :a2 ...) ... (:h1 ...)`"
   (map (fn [file]
          (for [rank (range 1 9)]
-           (keyword (str file rank)))) (map #(char %) (range 97 105))))
+           (keyword (str file rank)))) (map char (range 97 105))))
 
 (def squares
   "All 64 squares of a chessboard e.g. `(:a1 :a2 ... :h8)`"
@@ -27,7 +28,7 @@
 
 (def bitboard-map
   "Mapping from square to bit position on a LERF based bitboard."
-  (into {} (map (fn [a b] (zipmap a b)) files file-steps)))
+  (into {} (map zipmap files file-steps)))
 
 (def inverted-bitboard-map
   "Mapping from bit position to square on a LERF based bitboard"
@@ -118,10 +119,10 @@
   value x, left pads to a full 64 bit value as necessary"
   [x]
   (let [bin (Long/toBinaryString x)]
-    (str (apply str (repeat (- 64 (count bin)) "0")) bin)))
+    (str (string/join (repeat (- 64 (count bin)) "0")) bin)))
 
 (defn pr-board
   "Pretty prints a bitboard into an 8x8 chessboard"
   [bitboard]
-  (print (clojure.string/join "\n" (map (partial apply str) (reverse (partition-all 8 (reverse (dec->bin bitboard))))))))
+  (print (string/join "\n" (map (partial apply str) (reverse (partition-all 8 (reverse (dec->bin bitboard))))))))
 
